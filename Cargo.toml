@@ -1,0 +1,24 @@
+[package]
+name = "ownrss"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { version = "0.6.18", features = ["headers"] }
+base64 = "0.21.2"
+clap = { version = "4.3.4", features=["derive"]}
+mime = "0.3.17"
+rss = "2.0.4"
+sha2 = "0.10.7"
+tokio = { version = "1.28.2", features = ["macros", "rt-multi-thread", "fs"] }
+axum-macros = "0.3.7"
+tokio-util = { version = "0.7.8", features = ["io"] }
+tracing-subscriber = "0.3.17"
+axum-auth = "0.4.0"
+rpassword = "7.2.0"
+scrypt = "0.11.0"
+serde = { version = "1.0.164", features = ["derive"] }
+toml = "0.7.4"
+log = "0.4.19"
