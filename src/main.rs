@@ -168,6 +168,8 @@ fn load_files(dir: &PathBuf, salt: &str) -> io::Result<Files> {
 
     let mut files: Files = HashMap::new();
 
+    // TODO(nknight): parallelize file loading
+
     for entry_result in read_dir(dir)? {
         let entry = entry_result?;
         let path = entry.path();
@@ -183,6 +185,7 @@ fn load_files(dir: &PathBuf, salt: &str) -> io::Result<Files> {
 
 impl File {
     fn from_path(path: &PathBuf, salt: &str) -> io::Result<File> {
+        info!("  {}", path.display());
         let name = path
             .file_name()
             .unwrap_or_default()
@@ -246,13 +249,15 @@ fn get_file_slug(name: &str, file: std::fs::File, salt: &str) -> io::Result<Stri
         let mut hasher: Sha256 = Sha256::new();
         hasher.update(salt);
         hasher.update(name);
-        let mut buffer = [0; 2048];
-        // Get the SHA2 hash of the first 2048 bytes of the file.
-        let count = bufread.read(&mut buffer)?;
-        if count < 2048 {
-            debug!("Got only {} initial bytes for file slug instead of 2048", count);
+        let mut buffer = [0; 1048576]; // ~1MB buffer
+        loop {
+            let count = bufread.read(&mut buffer)?;
+            if count > 0 {
+                hasher.update(buffer);
+            } else {
+                break;
+            }
         }
-        hasher.update(buffer);
         hasher.finalize()
     };
     let slug = URL_SAFE.encode(digest);
@@ -296,7 +301,7 @@ mod auth {
             Ok(hash) => hash,
             Err(_) => {
                 debug!("Invalid password");
-                return false
+                return false;
             }
         };
         let ok = Scrypt
